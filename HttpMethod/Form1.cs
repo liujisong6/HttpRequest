@@ -35,6 +35,7 @@ namespace HttpMethod
             //    cbb_method.Items.Add(info1);
             //}
             lst = new List<MethodEntity>();
+
             foreach (var item in Encoding.GetEncodings())
             {
                 lst.Add(new MethodEntity() { name = item.Name, value = item.Name });
@@ -56,7 +57,12 @@ namespace HttpMethod
             cbb_Type.ValueMember = "value";
             //cbb_Type.SelectedIndex = 0;
             cbb_Type.SelectedValue = Encoding.UTF8.BodyName;
+            lst = new List<MethodEntity>();
 
+            foreach (var item in Encoding.GetEncodings())
+            {
+                lst.Add(new MethodEntity() { name = item.Name, value = item.Name });
+            };
             cbb_RequestType.DataSource = lst;
             cbb_RequestType.DisplayMember = "name";
 
