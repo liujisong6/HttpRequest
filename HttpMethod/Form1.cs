@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Threading;
 using System.Threading.Tasks;
+using System.IO.Compression;
 
 namespace HttpMethod
 {
@@ -69,7 +70,7 @@ namespace HttpMethod
             cbb_RequestType.ValueMember = "value";
             //cbb_Type.SelectedIndex = 0;
             cbb_RequestType.SelectedValue = Encoding.UTF8.BodyName;
-            
+
         }
         //2. 为窗体添加Load事件，并在其方法Form1_Load中，调用类的初始化方法，记录窗体和其控件的初始位置和大小
         private void Form1_Load(object sender, EventArgs e)
@@ -88,9 +89,9 @@ namespace HttpMethod
         }
         private void button1_Click(object sender, EventArgs e)
         {
-            string method=cbb_method.Text;
+            string method = cbb_method.Text;
             string encoding = cbb_Type.Text;
-            string url=tb_url.Text.Trim();
+            string url = tb_url.Text.Trim();
             string param = tb_Paramers.Text.Trim();
             Task s = new Task(() =>
             {
@@ -149,7 +150,15 @@ namespace HttpMethod
                 using (StreamReader reader = new StreamReader(response.GetResponseStream(), Encoding.GetEncoding(reponseEncoding))) //GB2312
                 {
 
-                    return response.Headers + reader.ReadToEnd();
+                    var myResponseStream = response.GetResponseStream();
+                    string result = "";
+                    if (response.ContentEncoding.ToLower().Contains("gzip"))
+                    {
+                        GZipStream gzip = new GZipStream(myResponseStream, CompressionMode.Decompress);
+                        var myStreamReader = new StreamReader(gzip, Encoding.UTF8);
+                        result = myStreamReader.ReadToEnd();
+                    }
+                    return response.Headers + reader.ReadToEnd() + (string.IsNullOrEmpty(result) ? "" : ",gzip格式:" + result);
                 }
             }
             catch (Exception ex)
@@ -169,14 +178,23 @@ namespace HttpMethod
 
                 // Get the response instance.
 
-                System.Net.WebResponse wResp = wReq.GetResponse();
+                HttpWebResponse wResp = (HttpWebResponse)wReq.GetResponse();
 
-                System.IO.Stream respStream = wResp.GetResponseStream();
+                System.IO.Stream response = wResp.GetResponseStream();
 
                 // Dim reader As StreamReader = New StreamReader(respStream)
-                using (System.IO.StreamReader reader = new System.IO.StreamReader(respStream,Encoding.GetEncoding(encoding)))
+                using (System.IO.StreamReader reader = new System.IO.StreamReader(response, Encoding.GetEncoding(encoding)))
                 {
-                    return wResp.Headers + reader.ReadToEnd();
+                    var myResponseStream = response;
+
+                    string result = "";
+                    if (wResp.ContentEncoding.ToLower().Contains("gzip"))
+                    {
+                        GZipStream gzip = new GZipStream(myResponseStream, CompressionMode.Decompress);
+                        var myStreamReader = new StreamReader(gzip, Encoding.UTF8);
+                        result = myStreamReader.ReadToEnd();
+                    }
+                    return wResp.Headers + reader.ReadToEnd() + (string.IsNullOrEmpty(result) ? "" : ",gzip格式:" + result);
                 }
 
             }
@@ -219,7 +237,7 @@ namespace HttpMethod
             if (e.Modifiers == Keys.Control && e.KeyCode == Keys.A)
             {
                 ((TextBox)sender).SelectAll();
-            }  
+            }
         }
 
         private void tb_Paramers_KeyDown(object sender, KeyEventArgs e)
@@ -227,7 +245,7 @@ namespace HttpMethod
             if (e.Modifiers == Keys.Control && e.KeyCode == Keys.A)
             {
                 ((TextBox)sender).SelectAll();
-            }  
+            }
         }
 
         private void tb_url_KeyDown(object sender, KeyEventArgs e)
@@ -235,7 +253,7 @@ namespace HttpMethod
             if (e.Modifiers == Keys.Control && e.KeyCode == Keys.A)
             {
                 ((TextBox)sender).SelectAll();
-            }  
+            }
         }
 
     }
