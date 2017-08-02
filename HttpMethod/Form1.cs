@@ -272,18 +272,27 @@ namespace HttpMethod
             SendEmail sm = new SendEmail();
             Task s = new Task(() =>
                   {
-                      foreach (var item in EmailArr)
+                      try
                       {
 
-                          EmailModel model = new EmailModel();
-                          model.Subject = "测试邮件！";
+                          foreach (var item in EmailArr)
+                          {
 
-                          model.Body = "<h3></h3>";
-                          model.Body += "<p>&nbsp;&nbsp;&nbsp;&nbsp;" + Message + "</p>";
-                          model.receiveAddress = item;
-                          sm.Send(model);
+                              EmailModel model = new EmailModel();
+                              model.Subject = "测试邮件！";
+
+                              model.Body = "<h3></h3>";
+                              model.Body += "<p>&nbsp;&nbsp;&nbsp;&nbsp;" + Message + "</p>";
+                              model.receiveAddress = item;
+                              sm.Send(model);
 
 
+                          }
+
+                      }
+                      catch (Exception ex)
+                      {
+                          txt_sendMessage.Text += ex.Message;
                       }
                   });
             s.Start();
