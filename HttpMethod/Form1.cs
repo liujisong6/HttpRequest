@@ -256,5 +256,38 @@ namespace HttpMethod
             }
         }
 
+        private void button2_Click(object sender, EventArgs e)
+        {
+            var Message = txt_sendMessage.Text;
+
+            string sendmain = System.Configuration.ConfigurationManager.AppSettings["SendEmail"];
+            string[] EmailArr = sendmain.Replace('，', ',').Split(',');//new string[] { "782179710@qq.com", "275513716@qq.com", "1193093@qq.com" };//, "1028694307@qq.com"
+            bool IsSend = Convert.ToBoolean(System.Configuration.ConfigurationManager.AppSettings["IsSend"]);
+            string mailaddress = SendEmail.address;
+            string testEmail = System.Configuration.ConfigurationManager.AppSettings["TestEmail"];
+            if (!IsSend)
+            {
+                EmailArr = testEmail.Replace('，', ',').Split(',');
+            }
+            SendEmail sm = new SendEmail();
+            Task s = new Task(() =>
+                  {
+                      foreach (var item in EmailArr)
+                      {
+
+                          EmailModel model = new EmailModel();
+                          model.Subject = "测试邮件！";
+
+                          model.Body = "<h3></h3>";
+                          model.Body += "<p>&nbsp;&nbsp;&nbsp;&nbsp;" + Message + "</p>";
+                          model.receiveAddress = item;
+                          sm.Send(model);
+
+
+                      }
+                  });
+            s.Start();
+        }
+
     }
 }
